@@ -3,9 +3,9 @@ import { LayoutDashboard, Package, FolderOpen, ShoppingCart, X } from "lucide-re
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/products", label: "Products", icon: Package },
-  { to: "/categories", label: "Categories", icon: FolderOpen },
-  { to: "/orders", label: "Orders", icon: ShoppingCart },
+  { to: "/products", label: "Mahsulotlar", icon: Package },
+  { to: "/categories", label: "Kategoriya", icon: FolderOpen },
+  { to: "/orders", label: "Buyurtmalar", icon: ShoppingCart },
 ];
 
 interface SidebarProps {
