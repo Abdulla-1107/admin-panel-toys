@@ -39,11 +39,22 @@ export interface Product {
 
 export type ProductInput = Omit<Product, "id">;
 
-export const getProducts = () => request<Product[]>("/product");
+export const getProducts = (params?: {
+  limit?: number;
+}) => {
+  const query = params
+    ? "?" + new URLSearchParams(params as any).toString()
+    : "";
+
+  return request<Product[]>(`/product${query}`);
+};
 export const createProduct = (data: ProductInput) =>
   request<Product>("/product", { method: "POST", body: JSON.stringify(data) });
 export const updateProduct = (id: string, data: ProductInput) =>
-  request<Product>(`/product/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+  request<Product>(`/product/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
 export const deleteProduct = (id: string) =>
   request(`/product/${id}`, { method: "DELETE" });
 
@@ -59,9 +70,15 @@ export type CategoryInput = Omit<Category, "id">;
 
 export const getCategories = () => request<Category[]>("/category");
 export const createCategory = (data: CategoryInput) =>
-  request<Category>("/category", { method: "POST", body: JSON.stringify(data) });
+  request<Category>("/category", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 export const updateCategory = (id: string, data: CategoryInput) =>
-  request<Category>(`/category/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+  request<Category>(`/category/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
 export const deleteCategory = (id: string) =>
   request(`/category/${id}`, { method: "DELETE" });
 

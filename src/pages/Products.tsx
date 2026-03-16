@@ -63,7 +63,10 @@ export default function Products() {
     isLoading,
     isError,
     refetch,
-  } = useQuery({ queryKey: ["products"], queryFn: getProducts });
+  } = useQuery({
+    queryKey: ["products"],
+    queryFn: () => getProducts({ limit: 100 }),
+  });
   const { data: categories } = useQuery({
     queryKey: ["categories"],
     queryFn: getCategories,
