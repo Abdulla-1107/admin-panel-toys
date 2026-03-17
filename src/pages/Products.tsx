@@ -58,26 +58,33 @@ const emptyForm: ProductInput = {
 
 export default function Products() {
   const queryClient = useQueryClient();
+
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<Product | null>(null);
+  const [form, setForm] = useState<ProductInput>(emptyForm);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
   const {
     data: products,
     isLoading,
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["products"],
-    queryFn: () => getProducts({ limit: 100 }),
+    queryKey: ["products", categoryFilter],
+    queryFn: () =>
+      getProducts({
+        limit: 100,
+        categoryId: categoryFilter === "all" ? undefined : categoryFilter,
+      }),
   });
+
   const { data: categories } = useQuery({
     queryKey: ["categories"],
     queryFn: getCategories,
   });
-
-  const [search, setSearch] = useState("");
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editing, setEditing] = useState<Product | null>(null);
-  const [form, setForm] = useState<ProductInput>(emptyForm);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
 
   const saveMutation = useMutation({
     mutationFn: (data: ProductInput) =>
@@ -104,6 +111,7 @@ export default function Products() {
     setForm(emptyForm);
     setModalOpen(true);
   };
+
   const openEdit = (p: Product) => {
     setEditing(p);
     setForm({
@@ -119,9 +127,11 @@ export default function Products() {
     });
     setModalOpen(true);
   };
+
   const closeModal = () => {
     setModalOpen(false);
     setEditing(null);
+    setForm(emptyForm);
   };
 
   const updateField = (key: keyof ProductInput, value: string | number) =>
@@ -155,17 +165,35 @@ export default function Products() {
         </Button>
       </div>
 
-      <div className="relative mb-4 max-w-sm">
-        <Search
-          size={16}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-        />
-        <Input
-          placeholder="Qidirish..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
-        />
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <div className="relative max-w-sm w-full">
+          <Search
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+          />
+          <Input
+            placeholder="Qidirish..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        <div className="w-full sm:w-64">
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Kategoriya tanlang" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Barcha kategoriyalar</SelectItem>
+              {categories?.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name_uz}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {isLoading ? (
@@ -226,7 +254,6 @@ export default function Products() {
         </div>
       )}
 
-      {/* Product Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -241,6 +268,7 @@ export default function Products() {
               <TabsTrigger value="en">EN</TabsTrigger>
               <TabsTrigger value="ru">RU</TabsTrigger>
             </TabsList>
+
             {(["uz", "en", "ru"] as const).map((lang) => (
               <TabsContent key={lang} value={lang} className="space-y-3 mt-3">
                 <div>
@@ -254,6 +282,7 @@ export default function Products() {
                     }
                   />
                 </div>
+
                 <div>
                   <label className="text-sm font-medium">
                     Tavsif ({lang.toUpperCase()})
@@ -279,6 +308,7 @@ export default function Products() {
                 onChange={(e) => updateField("price", Number(e.target.value))}
               />
             </div>
+
             <div>
               <label className="text-sm font-medium">Kategoriya</label>
               <Select
@@ -310,10 +340,13 @@ export default function Products() {
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
+
                   setUploading(true);
+
                   try {
                     const formData = new FormData();
                     formData.append("file", file);
+
                     const res = await fetch(
                       "https://api.mahinadolls.uz/upload",
                       {
@@ -321,9 +354,10 @@ export default function Products() {
                         body: formData,
                       },
                     );
+
                     if (!res.ok) throw new Error("Upload failed");
+
                     const json = await res.json();
-                    // ✅ compressed URL ishlatiladi
                     updateField("image", json.compressed);
                     toast.success("Rasm yuklandi!");
                   } catch {
@@ -334,6 +368,7 @@ export default function Products() {
                   }
                 }}
               />
+
               <div className="flex items-center gap-3">
                 <Button
                   type="button"
@@ -352,7 +387,6 @@ export default function Products() {
                   {uploading ? "Yuklanmoqda..." : "Rasm yuklash"}
                 </Button>
 
-                {/* ✅ Rasm preview + o'chirish tugmasi */}
                 {form.image && (
                   <div className="relative w-fit">
                     <img
@@ -377,11 +411,12 @@ export default function Products() {
             <Button variant="outline" onClick={closeModal}>
               Bekor qilish
             </Button>
+
             <Button
               onClick={() => saveMutation.mutate(form)}
               disabled={saveMutation.isPending}
             >
-              Saqlash
+              {saveMutation.isPending ? "Saqlanmoqda..." : "Saqlash"}
             </Button>
           </DialogFooter>
         </DialogContent>

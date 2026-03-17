@@ -41,9 +41,21 @@ export type ProductInput = Omit<Product, "id">;
 
 export const getProducts = (params?: {
   limit?: number;
+  categoryId?: string;
 }) => {
   const query = params
-    ? "?" + new URLSearchParams(params as any).toString()
+    ? "?" +
+      new URLSearchParams(
+        Object.entries(params).reduce(
+          (acc, [key, value]) => {
+            if (value !== undefined && value !== "") {
+              acc[key] = String(value);
+            }
+            return acc;
+          },
+          {} as Record<string, string>,
+        ),
+      ).toString()
     : "";
 
   return request<Product[]>(`/product${query}`);
