@@ -1,4 +1,4 @@
-const API_BASE = "https://api.mahinadolls.uz";
+const API_BASE = "https://docs.mahinadolls.uz";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {

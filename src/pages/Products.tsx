@@ -348,7 +348,7 @@ export default function Products() {
                     formData.append("file", file);
 
                     const res = await fetch(
-                      "https://api.mahinadolls.uz/upload",
+                      "https://docs.mahinadolls.uz/upload",
                       {
                         method: "POST",
                         body: formData,
